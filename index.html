@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6b66">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Bill Book</title>
+<style>
+:root{--bg:#f3f6f7;--sf:#fff;--ink:#14222b;--mut:#5d6b74;--ln:#d3dce0;--ac:#0f6b66;--aci:#fff;--dg:#b3261e;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a1f;--sf:#162429;--ink:#e6eef0;--mut:#93a5ac;--ln:#2a3d44;--ac:#4fc3bb;--aci:#05211f;--dg:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a1f;--sf:#162429;--ink:#e6eef0;--mut:#93a5ac;--ln:#2a3d44;--ac:#4fc3bb;--aci:#05211f;--dg:#ff8a80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:26px;margin:0 0 2px;letter-spacing:-.01em}
+h2{font-size:17px;margin:22px 0 8px}
+.sub{color:var(--mut);margin:0 0 16px}
+nav{display:flex;gap:4px;border-bottom:2px solid var(--ln);margin-bottom:16px;overflow-x:auto}
+nav button{background:none;border:0;padding:10px 14px;font:inherit;font-weight:600;color:var(--mut);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--ac)}
+button,input,select{font:inherit;color:inherit}
+input,select{background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:8px 10px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{background:var(--ac);color:var(--aci);border:0;border-radius:6px;padding:9px 16px;font-weight:600;cursor:pointer}
+.ghost{background:none;border:1px solid var(--ln);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--mut)}
+.danger{color:var(--dg);border-color:var(--dg)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:12px;margin-bottom:14px}
+.bar label,.form label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mut);flex:1 1 150px}
+.form{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.line{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.line output{text-align:right;font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:var(--bg);border-radius:8px;padding:12px 16px;font-weight:700;margin:14px 0}
+details{background:var(--sf);border:1px solid var(--ln);border-radius:8px;margin-bottom:8px}
+summary{display:grid;grid-template-columns:110px 1fr 1fr 130px;gap:8px;padding:12px 14px;cursor:pointer;list-style:none;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary .amt{text-align:right;font-weight:700}
+.det{padding:0 14px 14px}
+table{width:100%;border-collapse:collapse;background:var(--sf)}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ln)}
+th{font-size:13px;color:var(--mut);font-weight:600}
+td.n,th.n{text-align:right}
+.wrap{overflow-x:auto;border:1px solid var(--ln);border-radius:8px}
+.wrap table{border:0}
+.empty{padding:28px;text-align:center;color:var(--mut);background:var(--sf);border:1px dashed var(--ln);border-radius:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.item{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:12px;margin-bottom:8px}
+.item b{display:block;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--ln);border-radius:999px;padding:4px 6px 4px 14px}
+.notice{background:var(--sf);border-left:4px solid var(--ac);padding:10px 14px;margin-bottom:14px;border-radius:4px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+.brow{display:grid;grid-template-columns:110px 1fr 1fr 130px auto;gap:8px;align-items:center;background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:10px 14px;margin-bottom:8px}
+.brow .amt{text-align:right;font-weight:700}
+.acts{display:flex;gap:6px}
+.blines{border:1px solid var(--ln);border-top:0;border-radius:0 0 8px 8px;margin:-8px 0 8px;padding:6px 14px;background:var(--sf)}
+.bl{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:4px 0}
+.bl .n{text-align:right}
+.bl input{padding:5px 8px}
+.bdet{border:1px solid var(--ln);border-top:0;border-radius:0 0 8px 8px;margin:-8px 0 8px;padding:12px 14px;background:var(--sf)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal{background:var(--sf);border-radius:10px;padding:18px;max-width:640px;width:100%;max-height:85vh;overflow:auto}
+@media (max-width:640px){.line{grid-template-columns:1fr 1fr}.line output{text-align:left}.grid4{grid-template-columns:1fr 1fr}summary{grid-template-columns:1fr 1fr}.brow,.bl{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head>
+<body><main>
+<h1>Bill Book</h1>
+<p class="sub">Record goods bills by client, item and variety. See them by day, month or year.</p>
+<div id="note"></div>
+<nav role="tablist" id="tabs"></nav>
+<div id="view">Loading…</div>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const fmtDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})};
+const cu=n=>{try{return window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null)}catch(e){return Promise.resolve(null)}};
+let openB={},editB=null,editVals=[],db=null,dl=null,setup={clients:[],items:[],details:{}},bills=[],pays=[],tab='bills',armed='';
+let F={mode:'month',val:today().slice(0,7),client:'',q:'',item:'',variety:''};
+const blank=()=>({item:'',variety:'',bags:'',qty:'',rate:''});
+let draft={date:today(),client:'',no:'',lines:[blank()],editId:null};
+const LS='billbook-v1';
+const lsSave=()=>{try{localStorage.setItem(LS,JSON.stringify({setup,bills,pays}))}catch(e){}};
+let tt;const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600)};
+
+async function load(){
+  if(db){try{
+    const s=await db.doc('app/setup').get();if(s.exists)setup=JSON.parse(s.data().json);setup.details=setup.details||{};const p=await db.doc('app/pays').get();if(p.exists)pays=JSON.parse(p.data().json);
+    const q=await db.collection('bills').get();bills=q.docs.flatMap(d=>JSON.parse(d.data().json));return;
+  }catch(e){db=null}}
+  $('#note').innerHTML='<div class="notice">Your data is saved on this device. Use Setup, then Download backup, regularly.</div>';
+  try{const r=JSON.parse(localStorage.getItem(LS)||'null');if(r){setup=r.setup;bills=r.bills;pays=r.pays||[];setup.details=setup.details||{}}}catch(e){}
+}
+async function saveSetup(){if(db){try{await db.doc('app/setup').set({json:JSON.stringify(setup)})}catch(e){toast('Could not save. Try again.')}}else lsSave()}
+async function savePays(){if(db){try{await db.doc('app/pays').set({json:JSON.stringify(pays)})}catch(e){toast('Could not save. Try again.')}}else lsSave()}
+async function restore(f){
+  try{const r=JSON.parse(await f.text());if(!r||!Array.isArray(r.bills)||!r.setup)throw 0;
+  setup=r.setup;setup.details=setup.details||{};bills=r.bills;pays=r.pays||[];
+  await saveSetup();await savePays();for(const y of new Set(bills.map(b=>b.date.slice(0,4))))await saveYear(y);
+  render();toast('Backup restored.')}catch(e){toast('That file is not a valid backup.')}}
+async function saveYear(y){
+  if(!db){lsSave();return}
+  const arr=bills.filter(b=>b.date.slice(0,4)===y);
+  try{if(arr.length)await db.doc('bills/'+y).set({json:JSON.stringify(arr)});else await db.doc('bills/'+y).delete()}catch(e){toast('Could not save. Try again.')}
+}
+
+function opt(list,sel,ph){return '<option value="">'+esc(ph)+'</option>'+list.map(x=>'<option '+(x===sel?'selected':'')+' value="'+esc(x)+'">'+esc(x)+'</option>').join('')}
+function filtered(){
+  const pre=F.mode==='all'?'':F.val;
+  const q=F.q.trim().toLowerCase();return bills.filter(b=>b.date.startsWith(pre)&&(!F.client||b.client===F.client)&&b.lines.some(lm)&&(!q||(b.client+' '+b.no+' '+b.lines.map(l=>l.item+' '+l.variety).join(' ')).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+}
+const bTotal=b=>b.lines.reduce((s,l)=>s+l.qty*l.rate,0);
+function filterBar(){
+  const m=F.mode;
+  const inp=m==='day'?'<input type="date" data-f="val" value="'+esc(F.val)+'">':m==='month'?'<input type="month" data-f="val" value="'+esc(F.val)+'">':m==='year'?'<input type="number" data-f="val" min="2000" max="2100" value="'+esc(F.val)+'">':'';
+  return '<div class="bar"><label>View<select data-f="mode">'+[['day','Daily'],['month','Monthly'],['year','Yearly'],['all','All time']].map(a=>'<option value="'+a[0]+'" '+(m===a[0]?'selected':'')+'>'+a[1]+'</option>').join('')+'</select></label>'
+   +(inp?'<label>'+(m==='day'?'Date':m==='month'?'Month':'Year')+inp+'</label>':'')
+   +'<label>Client<select data-f="client">'+opt(setup.clients,F.client,'All clients')+'</select></label><label>Item<select data-f="item">'+opt(setup.items.map(x=>x.name),F.item,'All items')+'</select></label><label>Variety<select data-f="variety">'+opt([...new Set(setup.items.filter(x=>!F.item||x.name===F.item).flatMap(x=>x.varieties.filter(Boolean)))],F.variety,'All varieties')+'</select></label><label>Search<input data-f="q" placeholder="Bill no, item, variety, client" value="'+esc(F.q)+'"></label></div>';
+}
+function setMode(m){
+  let v=F.val||today();if(F.mode==='all')v=today();
+  if(v.length===4)v+='-01-01';else if(v.length===7)v+='-01';
+  F.mode=m;F.val=m==='day'?v:m==='month'?v.slice(0,7):v.slice(0,4);
+}
+
+const lm=l=>(!F.item||l.item===F.item)&&(!F.variety||l.variety===F.variety);
+const nextNo=()=>String(bills.reduce((m,b)=>Math.max(m,parseInt(b.no,10)||0),0)+1);
+const lastRate=(c,i,v)=>{const b=bills.filter(x=>x.client===c&&x.lines.some(l=>l.item===i&&l.variety===v)).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id)[0];return b?b.lines.find(l=>l.item===i&&l.variety===v).rate:''};
+function billModal(b){
+  return '<div class="bdet"><div class="wrap"><table><tr><th>Item</th><th>Variety</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Amount</th></tr>'
+   +b.lines.map(l=>'<tr><td>'+esc(l.item)+'</td><td>'+esc(l.variety)+'</td><td class="n">'+l.qty+'</td><td class="n">'+money(l.rate)+'</td><td class="n">'+money(l.qty*l.rate)+'</td></tr>').join('')
+   +'<tr><th colspan="4">Bill total</th><th class="n">'+money(bTotal(b))+'</th></tr></table></div><p style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="editbill" data-id="'+b.id+'">Edit bill</button><button class="ghost danger" data-act="delbill" data-id="'+b.id+'">'+(armed==='b'+b.id?'Confirm delete':'Delete bill')+'</button><button class="ghost" data-act="closebill" data-id="'+b.id+'">Hide details</button></p></div>';
+}
+function vBills(){
+  const L=filtered();
+  const list=L.length?L.map(b=>{
+    const k='b'+b.id;
+    return '<div class="bwrap"><div class="brow"><span>'+fmtDate(b.date)+'</span><span>'+esc(b.client)+'</span><span>'+(b.no?'Bill '+esc(b.no):'No bill number')+'</span><span class="amt">'+money(bTotal(b))+'</span><span class="acts">'+(editB===b.id?'<button class="btn" data-act="isave" data-id="'+b.id+'">Save</button><button class="ghost" data-act="icancel">Cancel</button>':'<button class="ghost" data-act="iedit" data-id="'+b.id+'">Edit</button><button class="ghost danger" data-act="delbill" data-id="'+b.id+'">'+(armed==='b'+b.id?'Confirm delete':'Delete')+'</button>')+'</span></div><div class="blines">'+b.lines.map((l,i)=>'<div class="bl"><span>'+esc(l.item)+', '+esc(l.variety)+'</span>'+(editB===b.id?'<input type="number" min="0" step="any" aria-label="Bags" data-ib="'+i+'" value="'+esc(editVals[i].bags)+'"><input type="number" min="0" step="any" aria-label="Quantity" data-iq="'+i+'" value="'+esc(editVals[i].qty)+'"><input type="number" min="0" step="any" aria-label="Rate" data-ir="'+i+'" value="'+esc(editVals[i].rate)+'">':'<span class="n">Bags '+(l.bags||0)+'</span><span class="n">Qty '+l.qty+'</span><span class="n">Rate '+money(l.rate)+'</span>')+'<span class="n">'+money(l.qty*l.rate)+'</span></div>').join('')+'</div></div>';
+  }).join(''):'<div class="empty">No bills for this view. Use “New bill” to add one.</div>';
+  return filterBar()+'<div class="total"><span>'+L.length+' bill'+(L.length===1?'':'s')+'</span><span>'+money(L.reduce((s,b)=>s+b.lines.filter(lm).reduce((t,l)=>t+l.qty*l.rate,0),0))+'</span></div>'+list;
+}
+function vNew(){
+  if(!setup.clients.length||!setup.items.length)return '<div class="empty">Add at least one client and one item first.<p><button class="btn" data-tab="setup">Go to Setup</button></p></div>';
+  const lines=draft.lines.map((l,i)=>{const it=setup.items.find(x=>x.name===l.item);
+    return '<div class="line" data-i="'+i+'"><select data-d="item" aria-label="Item">'+opt(setup.items.map(x=>x.name),l.item,'Item')+'</select><select data-d="variety" aria-label="Variety">'+opt(it?it.varieties.filter(Boolean):[],l.variety,'Variety')+'</select><input data-d="bags" type="number" min="0" step="any" placeholder="Bags" aria-label="Number of bags" value="'+esc(l.bags)+'"><input data-d="qty" type="number" min="0" step="any" placeholder="Qty" aria-label="Quantity" value="'+esc(l.qty)+'"><input data-d="rate" type="number" min="0" step="any" placeholder="Rate" aria-label="Rate" value="'+esc(l.rate)+'"><output>'+money(l.qty*l.rate)+'</output><button class="ghost" data-act="rmline" aria-label="Remove line">✕</button></div>'}).join('');
+  return (draft.editId?'<div class="notice">Editing a saved bill. <button class="ghost" data-act="cancel">Cancel edit</button></div>':'')+'<div class="form"><div class="row"><label>Date<input type="date" data-h="date" value="'+esc(draft.date)+'"></label><label>Client<select data-h="client">'+opt(setup.clients,draft.client,'Choose client')+'</select></label><label>Bill number<input data-h="no" placeholder="Auto: '+nextNo()+'" value="'+esc(draft.no)+'"></label></div>'
+   +lines+'<button class="ghost" data-act="addline">+ Add line</button><div class="total"><span>Bill total</span><span id="dtotal">'+money(draft.lines.reduce((s,l)=>s+l.qty*l.rate,0))+'</span></div><button class="btn" data-act="savebill">'+(draft.editId?'Save changes':'Save bill')+'</button></div>';
+}
+function vReport(){
+  const L=filtered(),R={},C={},CB={};let tq=0,ta=0,tb=0;
+  L.forEach(b=>{b.lines.filter(lm).forEach(l=>{C[b.client]=(C[b.client]||0)+l.qty*l.rate;const k=l.item+'\u0000'+l.variety+'\u0000'+l.rate;const r=R[k]=R[k]||{item:l.item,variety:l.variety,rate:l.rate,qty:0,bags:0,amt:0};r.bags+=l.bags||0;r.qty+=l.qty;r.amt+=l.qty*l.rate;tq+=l.qty;tb+=l.bags||0;CB[b.client]=(CB[b.client]||0)+(l.bags||0);ta+=l.qty*l.rate})});
+  const rows=Object.values(R).sort((a,b)=>a.item.localeCompare(b.item)||a.variety.localeCompare(b.variety)||a.rate-b.rate);
+  const G={};rows.forEach(r=>{const k=r.item+'\u0000'+r.variety;(G[k]=G[k]||[]).push(r)});
+  const body=Object.values(G).map(g=>g.map(r=>'<tr><td>'+esc(r.item)+'</td><td>'+esc(r.variety)+'</td><td class="n">'+money(r.rate)+'</td><td class="n">'+r.bags+'</td><td class="n">'+r.qty+'</td><td class="n">'+money(r.amt)+'</td></tr>').join('')+'').join('');
+  const D={};L.forEach(b=>b.lines.filter(lm).forEach(l=>{const k=b.date+'\u0000'+l.item+'\u0000'+l.variety;const r=D[k]=D[k]||{date:b.date,item:l.item,variety:l.variety,qty:0,bags:0,amt:0};r.bags+=l.bags||0;r.qty+=l.qty;r.amt+=l.qty*l.rate}));
+  const dr=Object.values(D).sort((a,b)=>a.date.localeCompare(b.date)||a.item.localeCompare(b.item)||a.variety.localeCompare(b.variety));
+  const a4=n=>n.toLocaleString('en-IN',{minimumFractionDigits:4,maximumFractionDigits:4});
+  const dayHtml='<h2>Day-wise by variety</h2><div class="wrap"><table><tr><th>Date</th><th>Item</th><th>Variety</th><th class="n">Bags</th><th class="n">Qty</th><th class="n">Avg rate</th><th class="n">Amount</th></tr>'+dr.map(r=>'<tr><td>'+fmtDate(r.date)+'</td><td>'+esc(r.item)+'</td><td>'+esc(r.variety)+'</td><td class="n">'+r.bags+'</td><td class="n">'+r.qty+'</td><td class="n">'+a4(r.qty?r.amt/r.qty:0)+'</td><td class="n">'+money(r.amt)+'</td></tr>').join('')+'<tr><th colspan="3">Total</th><th class="n">'+tb+'</th><th class="n">'+tq+'</th><th class="n">'+a4(tq?ta/tq:0)+'</th><th class="n">'+money(ta)+'</th></tr></table></div>';
+  const cl=Object.entries(C).sort((a,b)=>b[1]-a[1]);
+  let cmp='';if(F.mode!=='all'&&F.val){const v=F.val;let pv;
+    if(F.mode==='year')pv=String(+v-1);
+    else if(F.mode==='month'){const [y,m]=v.split('-').map(Number),d=new Date(y,m-2,1);pv=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+    else{const [y,m,dd]=v.split('-').map(Number),d=new Date(y,m-1,dd-1);pv=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+    const pt=bills.filter(b=>b.date.startsWith(pv)&&(!F.client||b.client===F.client)).reduce((s,b)=>s+b.lines.filter(lm).reduce((t,l)=>t+l.qty*l.rate,0),0);
+    cmp='<div class="notice">Previous '+F.mode+' ('+pv+'): '+money(pt)+(pt?'. This period is '+(ta>=pt?'up ':'down ')+Math.abs((ta-pt)/pt*100).toFixed(1)+'%.':'')+'</div>'}
+  return filterBar()+(rows.length?cmp+'<h2>By item and variety</h2><div class="wrap"><table><tr><th>Item</th><th>Variety</th><th class="n">Rate</th><th class="n">Bags</th><th class="n">Qty</th><th class="n">Amount</th></tr>'
+   +body
+   +'<tr><th colspan="2">Total</th><th class="n">Avg '+(tq?ta/tq:0).toLocaleString('en-IN',{minimumFractionDigits:4,maximumFractionDigits:4})+'</th><th class="n">'+tb+'</th><th class="n">'+tq+'</th><th class="n">'+money(ta)+'</th></tr></table></div>'+dayHtml+'<h2>By client</h2><div class="wrap"><table><tr><th>Client</th><th class="n">Bags</th><th class="n">Amount</th></tr>'
+   +cl.map(c=>'<tr><td>'+esc(c[0])+'</td><td class="n">'+(CB[c[0]]||0)+'</td><td class="n">'+money(c[1])+'</td></tr>').join('')+'</table></div>'
+   +(dl?'<p><button class="btn" data-act="csv">Download as CSV</button></p>':''):'<div class="empty">Nothing to report for this view.</div>');
+}
+function vPay(){
+  if(!setup.clients.length)return '<div class="empty">Add a client in Setup first.</div>';
+  const B={},P={};bills.forEach(b=>B[b.client]=(B[b.client]||0)+bTotal(b));pays.forEach(p=>P[p.client]=(P[p.client]||0)+p.amt);
+  const names=[...new Set([...setup.clients,...Object.keys(B),...Object.keys(P)])].sort();
+  return '<div class="form"><div class="row"><label>Date<input type="date" id="pd" value="'+today()+'"></label><label>Client<select id="pc">'+opt(setup.clients,'','Choose client')+'</select></label><label>Amount<input type="number" id="pm" min="0" step="any"></label><label>Note<input id="pn"></label></div><button class="btn" data-act="addpay">Save payment</button></div>'
+  +'<h2>Balance by client</h2><div class="wrap"><table><tr><th>Client</th><th class="n">Billed</th><th class="n">Paid</th><th class="n">Balance due</th></tr>'+names.map(c=>'<tr><td>'+esc(c)+'</td><td class="n">'+money(B[c])+'</td><td class="n">'+money(P[c])+'</td><td class="n"><b>'+money((B[c]||0)-(P[c]||0))+'</b></td></tr>').join('')+'</table></div>'
+  +'<h2>Payment history</h2>'+(pays.length?'<div class="wrap"><table><tr><th>Date</th><th>Client</th><th>Note</th><th class="n">Amount</th><th></th></tr>'+[...pays].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(p=>'<tr><td>'+fmtDate(p.date)+'</td><td>'+esc(p.client)+'</td><td>'+esc(p.note)+'</td><td class="n">'+money(p.amt)+'</td><td class="n"><button class="ghost danger" data-act="delpay" data-id="'+p.id+'">'+(armed==='p'+p.id?'Confirm':'Delete')+'</button></td></tr>').join('')+'</table></div>':'<div class="empty">No payments yet.</div>');
+}
+function vSetup(){
+  const del=(k,t)=>'<button class="ghost danger" data-act="del" data-k="'+k+'">'+(armed===k?'Confirm':t)+'</button>';
+  return '<h2>Clients ('+setup.clients.length+')</h2><div class="form"><div class="row"><label>New client name<input id="nc"></label><button class="btn" data-act="addclient" style="align-self:flex-end">Add client</button></div><div class="chips">'
+   +setup.clients.map((c,i)=>'<span class="chip">'+esc(c)+del('c'+i,'✕')+'</span>').join('')+'</div></div>'
+   +'<h2>Items and varieties ('+setup.items.length+')</h2><div class="form"><div class="row"><label>New item name<input id="ni"></label></div><div class="grid4">'
+   +[1,2,3,4].map(n=>'<label>Variety '+n+'<input class="nv"></label>').join('')+'</div><p><button class="btn" data-act="additem">Add item</button></p></div><div style="margin-top:12px">'
+   +setup.items.map((it,i)=>'<div class="item"><b>'+esc(it.name)+'</b><div class="grid4">'+it.varieties.map((v,j)=>'<input data-s="'+i+'.'+j+'" aria-label="Variety '+(j+1)+'" value="'+esc(v)+'">').join('')+'</div><p>'+del('i'+i,'Delete item')+'</p></div>').join('')+'</div><h2>Backup</h2><div class="form"><div class="row">'+(dl?'<button class="btn" data-act="backup">Download backup</button>':'')+'<label>Restore from backup (replaces current data)<input type="file" accept=".json" id="rf"></label></div></div>';
+}
+function render(){
+  const T=[['bills','Bills'],['new','New bill'],['report','Reports'],['pay','Payments'],['setup','Setup']];
+  $('#tabs').innerHTML=T.map(t=>'<button role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>').join('');
+  $('#view').innerHTML=({bills:vBills,new:vNew,report:vReport,pay:vPay,setup:vSetup})[tab]();
+}
+
+document.addEventListener('input',e=>{
+  const t=e.target,ln=t.closest('.line');
+  if(t.dataset.ib!==undefined){editVals[+t.dataset.ib].bags=t.value;return}
+  if(t.dataset.iq!==undefined||t.dataset.ir!==undefined){const q=t.dataset.iq!==undefined,i=+(q?t.dataset.iq:t.dataset.ir);editVals[i][q?'qty':'rate']=t.value;t.closest('.bl').lastElementChild.textContent=money(editVals[i].qty*editVals[i].rate);return}
+  if(t.dataset.h){draft[t.dataset.h]=t.value;return}
+  if(ln&&t.dataset.d){
+    const l=draft.lines[+ln.dataset.i];l[t.dataset.d]=t.value;
+    if(t.dataset.d==='item'){l.variety='';render();return}
+    ln.querySelector('output').textContent=money(l.qty*l.rate);
+    $('#dtotal').textContent=money(draft.lines.reduce((s,x)=>s+x.qty*x.rate,0));
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='rf'){if(t.files[0])restore(t.files[0]);return}
+  if(t.dataset.cd){const c=t.dataset.c;(setup.details[c]=setup.details[c]||{})[t.dataset.cd]=t.value.trim();saveSetup();return}
+  if(t.dataset.f){if(t.dataset.f==='mode')setMode(t.value);else{F[t.dataset.f]=t.value;if(t.dataset.f==='item')F.variety=''}render();return}
+  if(t.dataset.s){const [i,j]=t.dataset.s.split('.').map(Number);setup.items[i].varieties[j]=t.value.trim();saveSetup()}
+});
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-tab],[data-act]');if(!t)return;
+  if(t.dataset.tab){tab=t.dataset.tab;armed='';render();return}
+  const a=t.dataset.act;
+  if(a==='addline'){draft.lines.push(blank());render()}
+  else if(a==='rmline'){const i=+t.closest('.line').dataset.i;draft.lines.splice(i,1);if(!draft.lines.length)draft.lines=[blank()];render()}
+  else if(a==='savebill'){
+    const ls=draft.lines.filter(l=>l.item&&l.variety&&+l.qty>0).map(l=>({item:l.item,variety:l.variety,bags:+l.bags||0,qty:+l.qty,rate:+l.rate||0}));
+    if(!draft.date)return toast('Choose a date.');
+    if(!draft.client)return toast('Choose a client.');
+    if(!ls.length)return toast('Add a line with item, variety and quantity.');
+    const no=draft.no.trim()||nextNo(),ed=draft.editId,ny=draft.date.slice(0,4);
+    if(ed){const b=bills.find(x=>x.id===ed),oy=b.date.slice(0,4);Object.assign(b,{date:draft.date,client:draft.client,no,lines:ls});await saveYear(ny);if(oy!==ny)await saveYear(oy);tab='bills'}
+    else{bills.push({id:Date.now(),date:draft.date,client:draft.client,no,lines:ls});await saveYear(ny)}
+    draft={date:draft.date,client:ed?'':draft.client,no:'',lines:[blank()],editId:null};render();toast(ed?'Bill updated.':'Bill saved.');
+  }
+  else if(a==='delbill'){
+    const k='b'+t.dataset.id;
+    if(armed!==k){armed=k;render();return}
+    const b=bills.find(x=>String(x.id)===t.dataset.id);bills=bills.filter(x=>x!==b);armed='';
+    if(b)await saveYear(b.date.slice(0,4));render();toast('Bill deleted.');
+  }
+  else if(a==='editbill'){const b=bills.find(x=>String(x.id)===t.dataset.id);if(b){draft={date:b.date,client:b.client,no:b.no,lines:b.lines.map(l=>({...l})),editId:b.id};tab='new';render();scrollTo(0,0)}}
+  else if(a==='iedit'){const b=bills.find(x=>String(x.id)===t.dataset.id);if(b){editB=b.id;editVals=b.lines.map(l=>({bags:l.bags||0,qty:l.qty,rate:l.rate}));armed='';render()}}
+  else if(a==='icancel'){editB=null;render()}
+  else if(a==='isave'){const b=bills.find(x=>x.id===editB);if(!b)return;
+    if(editVals.some(v=>!(+v.qty>0)||v.rate===''||+v.rate<0))return toast('Enter a quantity above 0 and a rate for every line.');
+    b.lines.forEach((l,i)=>{l.bags=+editVals[i].bags||0;l.qty=+editVals[i].qty;l.rate=+editVals[i].rate});editB=null;await saveYear(b.date.slice(0,4));render();toast('Bill updated.')}
+  else if(a==='detail'){openB[t.dataset.id]=!openB[t.dataset.id];armed='';render()}
+  else if(a==='closebill'){delete openB[t.dataset.id];armed='';render()}
+  else if(a==='cancel'){draft={date:today(),client:'',no:'',lines:[blank()],editId:null};tab='bills';render()}
+  else if(a==='addpay'){const d=$('#pd').value,c=$('#pc').value,m=+$('#pm').value;if(!d||!c||!(m>0))return toast('Enter date, client and amount.');pays.push({id:Date.now(),date:d,client:c,amt:m,note:$('#pn').value.trim()});await savePays();render();toast('Payment saved.')}
+  else if(a==='delpay'){const k='p'+t.dataset.id;if(armed!==k){armed=k;render();return}pays=pays.filter(p=>String(p.id)!==t.dataset.id);armed='';await savePays();render();toast('Payment deleted.')}
+  else if(a==='backup'&&dl){try{await dl.save({filename:'bill-book-backup-'+today()+'.json',data:JSON.stringify({setup,bills,pays})})}catch(err){toast('Download was cancelled.')}}
+  else if(a==='addclient'){
+    const v=$('#nc').value.trim();if(!v)return toast('Enter a client name.');
+    if(setup.clients.includes(v))return toast('That client already exists.');
+    setup.clients.push(v);setup.clients.sort((x,y)=>x.localeCompare(y));await saveSetup();render();toast('Client added.');
+  }
+  else if(a==='additem'){
+    const n=$('#ni').value.trim(),v=[...document.querySelectorAll('.nv')].map(x=>x.value.trim());
+    if(!n)return toast('Enter an item name.');
+    if(setup.items.some(x=>x.name===n))return toast('That item already exists.');
+    if(v.filter(Boolean).length<1)return toast('Enter at least one variety.');
+    setup.items.push({name:n,varieties:v});await saveSetup();render();toast('Item added.');
+  }
+  else if(a==='del'){
+    const k=t.dataset.k;
+    if(armed!==k){armed=k;render();return}
+    armed='';if(k[0]==='c')setup.clients.splice(+k.slice(1),1);else setup.items.splice(+k.slice(1),1);
+    await saveSetup();render();toast('Deleted. Existing bills keep their details.');
+  }
+  else if(a==='csv'&&dl){
+    const q=v=>{v=String(v);if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+    const out=[['Date','Bill no','Client','Item','Variety','Bags','Qty','Rate','Amount'].join(',')];
+    filtered().forEach(b=>b.lines.filter(lm).forEach(l=>out.push([b.date,b.no,b.client,l.item,l.variety,l.bags||0,l.qty,l.rate,l.qty*l.rate].map(q).join(','))));
+    try{await dl.save({filename:'bills-'+(F.mode==='all'?'all':F.val)+'.csv',data:out.join('\n')})}catch(err){toast('Download was cancelled.')}
+  }
+});
+(async()=>{
+  db=null;dl={save:async({filename,data})=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/plain;charset=utf-8'}));a.download=filename;document.body.appendChild(a);a.click();a.remove()}};
+  await load();render();
+})();
+</script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script></body></html>
