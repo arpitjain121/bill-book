@@ -56,6 +56,8 @@ td.n,th.n{text-align:right}
 .brow{display:grid;grid-template-columns:110px 1fr 1fr 130px auto;gap:8px;align-items:center;background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:10px 14px;margin-bottom:8px}
 .brow .amt{text-align:right;font-weight:700}
 .acts{display:flex;gap:6px}
+.srow{grid-template-columns:28px 110px 1fr 1fr 130px;cursor:pointer}
+.srow input{width:18px;height:18px;padding:0;accent-color:var(--ac)}
 .blines{border:1px solid var(--ln);border-top:0;border-radius:0 0 8px 8px;margin:-8px 0 8px;padding:6px 14px;background:var(--sf)}
 .bl{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:4px 0}
 .bl .n{text-align:right}
@@ -81,8 +83,9 @@ const money=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFr
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const fmtDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})};
 const cu=n=>{try{return window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null)}catch(e){return Promise.resolve(null)}};
-let openB={},editB=null,editVals=[],db=null,dl=null,setup={clients:[],items:[],details:{}},bills=[],pays=[],tab='bills',armed='';
+let sel={},openB={},editB=null,editVals=[],db=null,dl=null,setup={clients:[],items:[],details:{}},bills=[],pays=[],tab='bills',armed='';
 let F={mode:'month',val:today().slice(0,7),client:'',q:'',item:'',variety:''};
+const calc=s=>{s=String(s==null?'':s).replace(/^\s*=/,'').replace(/[x×]/gi,'*').replace(/,/g,'');if(!s.trim())return 0;if(!/^[0-9+\-*/().\s]+$/.test(s))return NaN;try{const v=Function('"use strict";return ('+s+')')();return isFinite(v)?Math.round(v*1e6)/1e6:NaN}catch(e){return NaN}};
 const blank=()=>({item:'',variety:'',bags:'',qty:'',rate:''});
 let draft={date:today(),client:'',no:'',lines:[blank()],editId:null};
 const LS='billbook-v1';
@@ -148,9 +151,9 @@ function vBills(){
 function vNew(){
   if(!setup.clients.length||!setup.items.length)return '<div class="empty">Add at least one client and one item first.<p><button class="btn" data-tab="setup">Go to Setup</button></p></div>';
   const lines=draft.lines.map((l,i)=>{const it=setup.items.find(x=>x.name===l.item);
-    return '<div class="line" data-i="'+i+'"><select data-d="item" aria-label="Item">'+opt(setup.items.map(x=>x.name),l.item,'Item')+'</select><select data-d="variety" aria-label="Variety">'+opt(it?it.varieties.filter(Boolean):[],l.variety,'Variety')+'</select><input data-d="bags" type="number" min="0" step="any" placeholder="Bags" aria-label="Number of bags" value="'+esc(l.bags)+'"><input data-d="qty" type="number" min="0" step="any" placeholder="Qty" aria-label="Quantity" value="'+esc(l.qty)+'"><input data-d="rate" type="number" min="0" step="any" placeholder="Rate" aria-label="Rate" value="'+esc(l.rate)+'"><output>'+money(l.qty*l.rate)+'</output><button class="ghost" data-act="rmline" aria-label="Remove line">✕</button></div>'}).join('');
+    return '<div class="line" data-i="'+i+'"><select data-d="item" aria-label="Item">'+opt(setup.items.map(x=>x.name),l.item,'Item')+'</select><select data-d="variety" aria-label="Variety">'+opt(it?it.varieties.filter(Boolean):[],l.variety,'Variety')+'</select><input data-d="bags" type="number" min="0" step="any" placeholder="Bags" aria-label="Number of bags" value="'+esc(l.bags)+'"><input data-d="qty" type="text" inputmode="decimal" placeholder="Qty or formula" aria-label="Quantity or formula" value="'+esc(l.qty)+'"><input data-d="rate" type="number" min="0" step="any" placeholder="Rate" aria-label="Rate" value="'+esc(l.rate)+'"><output>'+money(calc(l.qty)*l.rate)+'</output><button class="ghost" data-act="rmline" aria-label="Remove line">✕</button></div>'}).join('');
   return (draft.editId?'<div class="notice">Editing a saved bill. <button class="ghost" data-act="cancel">Cancel edit</button></div>':'')+'<div class="form"><div class="row"><label>Date<input type="date" data-h="date" value="'+esc(draft.date)+'"></label><label>Client<select data-h="client">'+opt(setup.clients,draft.client,'Choose client')+'</select></label><label>Bill number<input data-h="no" placeholder="Auto: '+nextNo()+'" value="'+esc(draft.no)+'"></label></div>'
-   +lines+'<button class="ghost" data-act="addline">+ Add line</button><div class="total"><span>Bill total</span><span id="dtotal">'+money(draft.lines.reduce((s,l)=>s+l.qty*l.rate,0))+'</span></div><button class="btn" data-act="savebill">'+(draft.editId?'Save changes':'Save bill')+'</button></div>';
+   +lines+'<p class="sub" style="margin:0 0 8px">Tip: Qty can be a formula, such as 45*50+25.7. Use + - * / and brackets.</p><button class="ghost" data-act="addline">+ Add line</button><div class="total"><span>Bill total</span><span id="dtotal">'+money(draft.lines.reduce((s,l)=>s+calc(l.qty)*l.rate,0))+'</span></div><button class="btn" data-act="savebill">'+(draft.editId?'Save changes':'Save bill')+'</button></div>';
 }
 function vReport(){
   const L=filtered(),R={},C={},CB={};let tq=0,ta=0,tb=0;
@@ -175,6 +178,18 @@ function vReport(){
    +cl.map(c=>'<tr><td>'+esc(c[0])+'</td><td class="n">'+(CB[c[0]]||0)+'</td><td class="n">'+money(c[1])+'</td></tr>').join('')+'</table></div>'
    +(dl?'<p><button class="btn" data-act="csv">Download as CSV</button></p>':''):'<div class="empty">Nothing to report for this view.</div>');
 }
+function vSel(){
+  const L=filtered(),S=bills.filter(b=>sel[b.id]),R={},rd=n=>Math.round(n*1e4)/1e4;let tq=0,ta=0,tb=0;
+  S.forEach(b=>b.lines.forEach(l=>{const k=JSON.stringify([l.item,l.variety,l.rate]);const r=R[k]=R[k]||{item:l.item,variety:l.variety,rate:l.rate,bags:0,qty:0,amt:0};r.bags+=l.bags||0;r.qty+=l.qty;r.amt+=l.qty*l.rate;tb+=l.bags||0;tq+=l.qty;ta+=l.qty*l.rate}));
+  const rows=Object.values(R).sort((a,b)=>a.item.localeCompare(b.item)||a.variety.localeCompare(b.variety)||a.rate-b.rate);
+  const a4=n=>n.toLocaleString('en-IN',{minimumFractionDigits:4,maximumFractionDigits:4});
+  const allOn=L.length>0&&L.every(b=>sel[b.id]),hidden=S.length-L.filter(b=>sel[b.id]).length;
+  return filterBar()+'<div class="bar" style="align-items:center"><button class="ghost" data-act="selall">'+(allOn?'Unselect shown bills':'Select all shown bills')+'</button><button class="ghost" data-act="selclear">Clear selection</button><span>'+S.length+' bill'+(S.length===1?'':'s')+' selected'+(hidden>0?' ('+hidden+' hidden by the filters)':'')+'</span></div>'
+   +(S.length?'<div class="total"><span>Bags '+rd(tb)+'</span><span>Qty '+rd(tq)+'</span><span>Avg rate '+a4(tq?ta/tq:0)+'</span><span>Amount '+money(ta)+'</span></div><div class="wrap"><table><tr><th>Item</th><th>Variety</th><th class="n">Rate</th><th class="n">Bags</th><th class="n">Qty</th><th class="n">Amount</th></tr>'
+    +rows.map(r=>'<tr><td>'+esc(r.item)+'</td><td>'+esc(r.variety)+'</td><td class="n">'+money(r.rate)+'</td><td class="n">'+rd(r.bags)+'</td><td class="n">'+rd(r.qty)+'</td><td class="n">'+money(r.amt)+'</td></tr>').join('')
+    +'<tr><th colspan="2">Total</th><th class="n">Avg '+a4(tq?ta/tq:0)+'</th><th class="n">'+rd(tb)+'</th><th class="n">'+rd(tq)+'</th><th class="n">'+money(ta)+'</th></tr></table></div><h2>Bills</h2>':'<div class="empty">Tick the bills you want. Their totals will show here.</div><h2>Bills</h2>')
+   +(L.length?L.map(b=>'<label class="brow srow"><input type="checkbox" data-sel="'+b.id+'" '+(sel[b.id]?'checked':'')+'><span>'+fmtDate(b.date)+'</span><span>'+esc(b.client)+'</span><span>'+(b.no?'Bill '+esc(b.no):'No bill number')+'</span><span class="amt">'+money(bTotal(b))+'</span></label>').join(''):'<div class="empty">No bills for this view.</div>');
+}
 function vPay(){
   if(!setup.clients.length)return '<div class="empty">Add a client in Setup first.</div>';
   const B={},P={};bills.forEach(b=>B[b.client]=(B[b.client]||0)+bTotal(b));pays.forEach(p=>P[p.client]=(P[p.client]||0)+p.amt);
@@ -192,9 +207,12 @@ function vSetup(){
    +setup.items.map((it,i)=>'<div class="item"><b>'+esc(it.name)+'</b><div class="grid4">'+it.varieties.map((v,j)=>'<input data-s="'+i+'.'+j+'" aria-label="Variety '+(j+1)+'" value="'+esc(v)+'">').join('')+'</div><p>'+del('i'+i,'Delete item')+'</p></div>').join('')+'</div><h2>Backup</h2><div class="form"><div class="row">'+(dl?'<button class="btn" data-act="backup">Download backup</button>':'')+'<label>Restore from backup (replaces current data)<input type="file" accept=".json" id="rf"></label></div></div>';
 }
 function render(){
-  const T=[['bills','Bills'],['new','New bill'],['report','Reports'],['pay','Payments'],['setup','Setup']];
+  const fl=()=>[...document.querySelectorAll('#view .form input,#view .form select')];
+  const keep=tab==='new'?fl().indexOf(document.activeElement):-1;
+  const T=[['bills','Bills'],['new','New bill'],['report','Reports'],['sel','Select bills'],['pay','Payments'],['setup','Setup']];
   $('#tabs').innerHTML=T.map(t=>'<button role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>').join('');
-  $('#view').innerHTML=({bills:vBills,new:vNew,report:vReport,pay:vPay,setup:vSetup})[tab]();
+  $('#view').innerHTML=({bills:vBills,new:vNew,report:vReport,sel:vSel,pay:vPay,setup:vSetup})[tab]();
+  if(keep>=0){const f=fl()[keep];if(f)f.focus()}
 }
 
 document.addEventListener('input',e=>{
@@ -205,12 +223,14 @@ document.addEventListener('input',e=>{
   if(ln&&t.dataset.d){
     const l=draft.lines[+ln.dataset.i];l[t.dataset.d]=t.value;
     if(t.dataset.d==='item'){l.variety='';render();return}
-    ln.querySelector('output').textContent=money(l.qty*l.rate);
-    $('#dtotal').textContent=money(draft.lines.reduce((s,x)=>s+x.qty*x.rate,0));
+    ln.querySelector('output').textContent=money(calc(l.qty)*l.rate);
+    if(t.dataset.d==='qty'){const v=calc(l.qty);t.title=isNaN(v)?'Check the formula':'= '+v}
+    $('#dtotal').textContent=money(draft.lines.reduce((s,x)=>s+calc(x.qty)*x.rate,0));
   }
 });
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.dataset.sel){sel[t.dataset.sel]=t.checked;render();return}
   if(t.id==='rf'){if(t.files[0])restore(t.files[0]);return}
   if(t.dataset.cd){const c=t.dataset.c;(setup.details[c]=setup.details[c]||{})[t.dataset.cd]=t.value.trim();saveSetup();return}
   if(t.dataset.f){if(t.dataset.f==='mode')setMode(t.value);else{F[t.dataset.f]=t.value;if(t.dataset.f==='item')F.variety=''}render();return}
@@ -223,7 +243,8 @@ document.addEventListener('click',async e=>{
   if(a==='addline'){draft.lines.push(blank());render()}
   else if(a==='rmline'){const i=+t.closest('.line').dataset.i;draft.lines.splice(i,1);if(!draft.lines.length)draft.lines=[blank()];render()}
   else if(a==='savebill'){
-    const ls=draft.lines.filter(l=>l.item&&l.variety&&+l.qty>0).map(l=>({item:l.item,variety:l.variety,bags:+l.bags||0,qty:+l.qty,rate:+l.rate||0}));
+    if(draft.lines.some(l=>String(l.qty).trim()!==''&&isNaN(calc(l.qty))))return toast('Check the formula in Qty.');
+    const ls=draft.lines.filter(l=>l.item&&l.variety&&calc(l.qty)>0).map(l=>({item:l.item,variety:l.variety,bags:+l.bags||0,qty:calc(l.qty),rate:+l.rate||0}));
     if(!draft.date)return toast('Choose a date.');
     if(!draft.client)return toast('Choose a client.');
     if(!ls.length)return toast('Add a line with item, variety and quantity.');
@@ -239,6 +260,8 @@ document.addEventListener('click',async e=>{
     if(b)await saveYear(b.date.slice(0,4));render();toast('Bill deleted.');
   }
   else if(a==='editbill'){const b=bills.find(x=>String(x.id)===t.dataset.id);if(b){draft={date:b.date,client:b.client,no:b.no,lines:b.lines.map(l=>({...l})),editId:b.id};tab='new';render();scrollTo(0,0)}}
+  else if(a==='selall'){const L=filtered(),on=L.length>0&&L.every(b=>sel[b.id]);L.forEach(b=>{sel[b.id]=!on});render()}
+  else if(a==='selclear'){sel={};render()}
   else if(a==='iedit'){const b=bills.find(x=>String(x.id)===t.dataset.id);if(b){editB=b.id;editVals=b.lines.map(l=>({bags:l.bags||0,qty:l.qty,rate:l.rate}));armed='';render()}}
   else if(a==='icancel'){editB=null;render()}
   else if(a==='isave'){const b=bills.find(x=>x.id===editB);if(!b)return;
@@ -273,6 +296,18 @@ document.addEventListener('click',async e=>{
     const out=[['Date','Bill no','Client','Item','Variety','Bags','Qty','Rate','Amount'].join(',')];
     filtered().forEach(b=>b.lines.filter(lm).forEach(l=>out.push([b.date,b.no,b.client,l.item,l.variety,l.bags||0,l.qty,l.rate,l.qty*l.rate].map(q).join(','))));
     try{await dl.save({filename:'bills-'+(F.mode==='all'?'all':F.val)+'.csv',data:out.join('\n')})}catch(err){toast('Download was cancelled.')}
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||tab!=='new'||e.isComposing)return;
+  const t=e.target;if(!t.closest||!t.closest('#view .form')||!(t.tagName==='INPUT'||t.tagName==='SELECT'))return;
+  e.preventDefault();
+  const f=[...document.querySelectorAll('#view .form input,#view .form select')],i=f.indexOf(t);
+  if(i<f.length-1){const n=f[i+1];n.focus();if(n.tagName==='INPUT'){try{n.select()}catch(err){}}}
+  else{
+    const last=draft.lines[draft.lines.length-1];
+    if(String(last.qty).trim()!==''){draft.lines.push(blank());render();const g=[...document.querySelectorAll('#view .form .line')].pop();if(g)g.querySelector('select').focus()}
+    else{const b=document.querySelector('[data-act="savebill"]');if(b)b.focus()}
   }
 });
 (async()=>{
